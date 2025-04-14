@@ -98,5 +98,19 @@ public class Maze {
         return false;
     }
 
+    public void printMaze() {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                boolean isPath = path != null && path.stream().anyMatch(p -> p[0] == i && p[1] == j);
+                if (i == 1 && j == 1) System.out.print("S ");
+                else if (i == rows - 2 && j == cols - 2) System.out.print("E ");
+                else if (isPath) System.out.print(". ");
+                else System.out.print(grid[i][j] == 1 ? "# " : "  ");
+            }
+            System.out.println();
+        }
+}
+
+
 
 }
