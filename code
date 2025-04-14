@@ -1,0 +1,11 @@
+public class Maze {
+    private final int rows;
+    private final int cols;
+    private int[][] grid;
+
+    public Maze(int rows, int cols) {
+        this.rows = rows;
+        this.cols = cols;
+        this.grid = new int[rows][cols];
+    }
+}
