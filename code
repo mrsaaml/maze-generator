@@ -40,4 +40,33 @@ public class Maze {
             }
         }
     }
+
+    private void connectToExit() {
+        boolean[][] visited = new boolean[rows][cols];
+        Stack<int[]> stack = new Stack<>();
+        stack.push(new int[]{1, 1});
+        visited[1][1] = true;
+    
+        while (!stack.isEmpty()) {
+            int[] current = stack.pop();
+            int row = current[0], col = current[1];
+    
+            if (row == rows - 2 && col == cols - 2) return;
+    
+            for (int[] dir : directions) {
+                int newRow = row + dir[0];
+                int newCol = col + dir[1];
+    
+                if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols
+                        && grid[newRow][newCol] == 0 && !visited[newRow][newCol]) {
+                    visited[newRow][newCol] = true;
+                    stack.push(new int[]{newRow, newCol});
+                }
+            }
+        }
+    
+        grid[rows - 2][cols - 2] = 0;
+        grid[rows - 3][cols - 2] = 0;
+    }
+
 }
