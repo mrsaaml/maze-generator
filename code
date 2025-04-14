@@ -2,70 +2,88 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Stack; //  Импортируем Stack, он нужен для DFS
 
 
 public class Maze {
-    private final int rows;
-    private final int cols;
-    private int[][] grid;
-    private Cell start;
-    private Cell exit;
+    private final int rows; // количество строк
+    private final int cols; // количество столбцов
+    private int[][] grid;   // сама карта лабиринта
+    private Cell start;     // начальная точка
+    private Cell exit;      // точка выхода
     
 
-    public Maze(int rows, int cols) {
-        this.rows = rows;
+    public Maze(int rows, int cols) { // Конструктор
+        this.rows = rows; 
         this.cols = cols;
-        this.grid = new int[rows][cols];
-        this.start = new Cell(1, 1);
-        this.exit = new Cell(rows - 2, cols - 2);
+        this.grid = new int[rows][cols]; // создаём сетку заданного размера
+        this.start = new Cell(1, 1); // стартовая точка всегда в (1, 1)
+        this.exit = new Cell(rows - 2, cols - 2); // выход — внутренняя точка внизу справа
     }
 
-    private Random random = new Random();
+    private Random random = new Random(); // генератор случайных чисел
+
+    // Возможные направления движения: вверх, вправо, вниз, влево
     private final int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
     public void generateMaze() {
+    // Инициализация лабиринта: все ячейки — стены (1 = стена, 0 = путь)
         for (int[] row : grid) {
-            Arrays.fill(row, 1);
+            Arrays.fill(row, 1); // всё заполняется стенами
         }
+        // Начинаем "вырезать" путь из стартовой точки
         carvePathstart.row, start.col);
 
+        // Убеждаемся, что старт и выход открыты
         grid[start.row][start.col] = 0;
         grid[exit.row][exit.col] = 0;
+
+        // Проверяем, есть ли путь до выхода. Если нет — соединяем.
+        connectToExit();
     }
 
+    // Рекурсивная функция для создания пути с помощью DFS
     private void carvePath(int row, int col) {
-        grid[row][col] = 0;
+        grid[row][col] = 0; // Отмечаем текущую ячейку как путь
+
+        // Случайный порядок направлений
         List<Integer> dirs = Arrays.asList(0, 1, 2, 3);
         Collections.shuffle(dirs);
-&&
+
         for (int dir : dirs) {
             int newRow = row + directions[dir][0] * 2;
             int newCol = col + directions[dir][1] * 2;
 
+            // Проверяем, в пределах ли новой ячейки и не была ли она уже "прорублена"
             if (newRow > 0 && newRow < rows - 1 && newCol > 0 && newCol < cols - 1 && grid[newRow][newCol] == 1) {
-                grid[row + directions[dir][0]][col + directions[dir][1]] = 0;
-                carvePath(newRow, newCol);
+                // Прорубаем стену между текущей и следующей ячейкой
+                grid[row + directions[dir][0]][col + directions[dir][1]] = 0; // ломаем стену между
+                carvePath(newRow, newCol); // продолжаем дальше (Рекурсивный вызов (DFS))
             }
         }
     }
 
+    // Убедиться, что существует путь от старта до выхода
     private void connectToExit() {
-        boolean[][] visited = new boolean[rows][cols];
-        Stack<Cell> stack = new Stack<>();
-        stack.push(new int[]{1, 1});
+        // Простой поиск в глубину (DFS), чтобы убедиться, что выход достижим
+        boolean[][] visited = new boolean[rows][cols]; // массив посещений
+        Stack<Cell> stack = new Stack<>(); // стек для DFS
+        stack.push(start); // начинаем со старта
         visited[start.row][start.col] = true;
     
         while (!stack.isEmpty()) {
-            Cell current = stack.pop();
+            Cell current = stack.pop(); // берём текущую ячейку
     
             if (current.equals(exit)) {
-                return; 
+                return;  // Выход достижим
             }
-    
+
+            // Пробуем двигаться во все стороны
             for (int[] dir : directions) {
                 int newRow = current.row + dir[0];
-                int newCol = current.row + dir[0];
+                int newCol = current.col + dir[1];
     
+                // Проверяем, валидна ли следующая ячейка, не посещена ли она и является ли путём
                 if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols
                         && grid[newRow][newCol] == 0 && !visited[newRow][newCol]) {
                     visited[newRow][newCol] = true;
@@ -73,37 +91,42 @@ public class Maze {
                 }
             }
         }
-    
+
+        // Если дошли сюда, значит выход был недостижим, соединяем его с путём вручную
         grid[exit.row][exit.col] = 0;
-        grid[exit.row - 1][exit.col] = 0;
+        grid[exit.row - 1][exit.col] = 0; // Прорубаем сверху
     }
 
-    private boolean[][] visited;
-    private List<Cell> path;
+    private boolean[][] visited; // для решения — чтобы не заходить повторно
+    private List<Cell> path; // путь от старта до выхода
     
     public boolean solveMaze() {
-        visited = new boolean[rows][cols];
-        path = new ArrayList<>();
-        return solve(1, 1);
+        visited = new boolean[rows][cols]; // обнуляем посещённые
+        path = new ArrayList<>(); // очищаем путь
+        return solve(start.row, start.col);
     }
-    
+
+    // Рекурсивный метод решения лабиринта (DFS)
     private boolean solve(int row, int col) {
-        if (row < 0 || row >= rows || col < 0 || col >= cols) return false;
-        if (grid[row][col] == 1) return false;
-        if (visited[row][col]) return false;
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return false; // Вышли за пределы
+        if (grid[row][col] == 1) return false; // Стена
+        if (visited[row][col]) return false; // Уже посещено
     
-        if (row == exit.row && col == exit.col) {
+        if (row == exit.row && col == exit.col) { // Найден выход
             path.add(new Cell(row, col));
             return true;
         }
-    
+
+        // Отмечаем как посещённую
         visited[row][col] = true;
         path.add(new Cell(row, col));
-    
+
+        // Пробуем все направления и рекурсивно продолжаем путь
         for (int[] dir : directions) {
-            if (solve(row + dir[0], col + dir[1])) return true;
+            if (solve(row + dir[0], col + dir[1])) return true; 
         }
-    
+
+        // Откат (backtracking), если путь не найден
         path.remove(path.size() - 1);
         return false;
     }
@@ -112,36 +135,41 @@ public class Maze {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (i == start.row && j == start.col) {
-                    System.out.print("S ");
+                    System.out.print("S "); // Старт
                 } else if (i == exit.row && j == exit.col) {
-                    System.out.print("E ");
+                    System.out.print("E "); // Выход
                 } else if (path != null && path.contains(new Cell(i, j))) {
-                    System.out.print(". ");
+                    System.out.print(". "); // Путь
                 }
-                else System.out.print(grid[i][j] == 1 ? "# " : "  ");
+                else System.out.print(grid[i][j] == 1 ? "# " : "  "); // Стена или пустая клетка
             }
             System.out.println();
         }
    }
 
-   private static class Cell {
+   private static class Cell { // Конструктор
     int row, col;
     public Cell(int row, int col) {
         this.row = row;
         this.col = col;
     }
+
+    // Переопределение equals для корректного сравнения ячеек.
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj) return true; // Если ссылки равны
+        if (obj == null || getClass() != obj.getClass()) return false; // Разные классы
         Cell cell = (Cell) obj;
         return row == cell.row && col == cell.col;
     }
+    // Обязателен при переопределении equals. Возращает уникальный код: две ячейки равны, если у них одинаковые координаты.
+
     @Override
     public int hashCode() {
         return 31 * row + col;
     }
 }
+
 
 
 
