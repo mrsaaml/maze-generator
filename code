@@ -69,4 +69,34 @@ public class Maze {
         grid[rows - 3][cols - 2] = 0;
     }
 
+    private boolean[][] visited;
+    private List<int[]> path;
+    
+    public boolean solveMaze() {
+        visited = new boolean[rows][cols];
+        path = new ArrayList<>();
+        return solve(1, 1);
+    }
+    
+    private boolean solve(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols || grid[row][col] == 1 || visited[row][col])
+            return false;
+    
+        if (row == rows - 2 && col == cols - 2) {
+            path.add(new int[]{row, col});
+            return true;
+        }
+    
+        visited[row][col] = true;
+        path.add(new int[]{row, col});
+    
+        for (int[] dir : directions) {
+            if (solve(row + dir[0], col + dir[1])) return true;
+        }
+    
+        path.remove(path.size() - 1);
+        return false;
+    }
+
+
 }
